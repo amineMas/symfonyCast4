@@ -2,25 +2,38 @@
 
 namespace App\Controller;
 
-use Symfony\Component\HttpFoundation\Response;
+use App\Entity\Article;
+use App\Repository\ArticleRepository;
+use App\Service\MarkdownHelper;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 
 class ArticleController extends AbstractController
 {
     /**
-     * @Route("/")
+     * @Route("/", name="app_homepage")
      */
     public function homepage()
     {
-        return new Response('OMG! my first page');
+        return $this->render('article/homepage.html.twig');
     }
 
     /**
-     * @Route("/news/{slug}")
+     * @Route("/news/{slug}", name="article_show")
      */
-    public function show($slug)
+    public function show($slug, EntityManagerInterface $em)
     {
+        $repository = $em->getRepository(Article::class);
+        /** @var Article $article */
+        $article = $repository->findOneBy(['slug' => $slug]);
+        if(!$article) {
+            throw $this->createNotFoundException(sprintf('No article for slug: %s', $slug));
+        }
+
         $comments = [
             'I ate a normal rock once. It did NOT taste like bacon!',
             'Woohoo! I\'m going on an all-asteroid diet!',
@@ -28,8 +41,18 @@ class ArticleController extends AbstractController
         ];
 
         return $this->render('article/show.html.twig', [
-            'title' => ucwords(str_replace('-', ' ', $slug)),
+            'article' => $article,
             'comments' => $comments
         ]);
+    }
+
+    /**
+     * @Route("/news/{slug}/heart", name="article_toggle_heart", methods={"POST"})
+     */
+    public function toggleArticleHeart($slug, LoggerInterface $logger)
+    {
+        // TODO - actually heart/unheart the article!
+        $logger->info('Article is being hearter');
+        return new JsonResponse(['hearts' => rand(5, 100)]);
     }
 }
