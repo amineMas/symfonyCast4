@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Article;
 use App\Repository\ArticleRepository;
-use App\Service\MarkdownHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,9 +16,13 @@ class ArticleController extends AbstractController
     /**
      * @Route("/", name="app_homepage")
      */
-    public function homepage()
+    public function homepage(ArticleRepository $repository)
     {
-        return $this->render('article/homepage.html.twig');
+        $articles = $repository->findAllPublishedOrderedByNewest();
+
+        return $this->render('article/homepage.html.twig', [
+            'articles' => $articles,
+        ]);
     }
 
     /**
