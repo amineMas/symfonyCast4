@@ -3,9 +3,10 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
+use Doctrine\Common\Collections\Criteria;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -33,6 +34,14 @@ class ArticleRepository extends ServiceEntityRepository
         ;
     }
 
+    public static function createNonDeletedCriteria(): Criteria
+    {
+        // we create a criteria object and add some filter like for a query builder
+        return Criteria::create()
+            ->andWhere(Criteria::expr()->eq('isDeleted', false))
+            ->orderBy(['createdAt' => 'DESC'])
+        ;
+    }
 
     /*
     public function findOneBySomeField($value): ?Article
